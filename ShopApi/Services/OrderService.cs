@@ -1,17 +1,20 @@
 ﻿using ShopApi.Data;
 using ShopApi.Models;
-
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using ShopApi.Hubs;
 
 namespace ShopApi.Services
 {
     public class OrderService
     {
         private readonly AppDbContext _context;
+        private readonly IHubContext<OrderHub> _hubContext;
 
-        public OrderService(AppDbContext context)
+        public OrderService(AppDbContext context, IHubContext<OrderHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         public IEnumerable<Order> GetAllOrders()
@@ -30,10 +33,21 @@ namespace ShopApi.Services
                 .FirstOrDefault(o => o.Id == id);
         }
 
-        public Order CreateOrder(Order order)
+        public async Task<Order> CreateOrder(Order order)
         {
             _context.Orders.Add(order);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group("Admins").SendAsync("ReceiveNewOrder", new
+            {
+                Id = order.Id,
+                CustomerName = order.CustomerName,
+                Address = order.Address,
+                Status = order.Status,
+                TotalPrice = order.OrderItems.Sum(oi => oi.UnitPrice * oi.Quantity),
+                CreatedAt = order.CreatedAt
+            });
+
             return order;
         }
 

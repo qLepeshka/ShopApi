@@ -22,6 +22,8 @@ namespace ShopApi.Models
         public string Status { get; set; } = "New";
 
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
     public class OrderItem
@@ -33,6 +35,8 @@ namespace ShopApi.Models
         public Product Product { get; set; }
 
         public int Quantity { get; set; } = 1;
+
+
 
         // Цена на момент заказа (фиксируется при добавлении товара)
         public decimal UnitPrice { get; set; }

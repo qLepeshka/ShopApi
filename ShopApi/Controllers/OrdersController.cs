@@ -22,18 +22,26 @@ namespace ShopApi.Controllers
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public IActionResult GetOrder(int id)
         {
             var order = _orderService.GetOrderById(id);
-            if (order == null) return NotFound();
+            if (order == null) 
+                return NotFound();
             return Ok(order);
         }
 
         [HttpPost]
-        public IActionResult Create(Order order)
+        public async Task<ActionResult<Order>> CreateOrder(Order order)
         {
-            var createdOrder = _orderService.CreateOrder(order);
-            return CreatedAtAction(nameof(GetById), new { id = createdOrder.Id }, createdOrder);
+            try
+            {
+                var createdOrder = await _orderService.CreateOrder(order);
+                return CreatedAtAction(nameof(GetOrder), new { id = createdOrder.Id }, createdOrder);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
