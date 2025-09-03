@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Панель администратора ShopApi</title>
+</head>
+<body>
+    <h1>Новые заказы в реальном времени</h1>
+    <ul id="ordersList"></ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("https://localhost:44311/orderHub")
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        connection.on("ReceiveNewOrder", (order) => {
+            console.log("Получен новый заказ!", order);
+            const li = document.createElement("li");
+            li.textContent = `Новый заказ #${order.id} на сумму ${order.totalPrice} руб.`;
+            document.getElementById("ordersList").appendChild(li);
+        });
+
+        connection.start()
+            .then(() => {
+                console.log("Подключение к OrderHub установлено.");
+                return connection.invoke("JoinAdminGroup");
+            })
+            .then(() => {
+                console.log("Присоединились к группе 'Admins'.");
+            })
+            .catch(console.error);
+    </script>
+</body>
+</html>
